@@ -1,74 +1,82 @@
-document.addEventListener("DOMContentLoaded", domLoaded())
+const allButtons = document.querySelector(".buttons")
+const calculatorScreen = document.querySelector("#screen")
 
-function domLoaded () {
-    const buttonBox = document.querySelector(".buttons")
-    const buttons = Array.from(buttonBox.children)
-    buttons.forEach (button => {
-        button.addEventListener("click", (e) => {
-            appendToScreen(e)
-        })
-    })
-}
+let numberArray = []
+let latestNumber = 0
 
-function appendToScreen (e) {
-    const screen = document.getElementById('screen')
-    buttonValue = e.target.innerText
-    number = parseInt(buttonValue, 10)
-    if (number || number === 0) {
-        appendNumbers(number)
-    } else if (buttonValue === 'C') {
-        screen.innerText = ""
-    }else if (buttonValue === '=') {
-        screen.innerText = storedNum
+let theEquation = []
+
+allButtons.addEventListener("click", calculateStuff)
+
+function calculateStuff(e) {
+    let buttonElement = e.target
+    if (buttonElement.className === "operator") {
+        operatorFn(buttonElement)
+    } else if (buttonElement.innerText) {
+        numberEntry(buttonElement)
     } else {
-        operand(e, screen, buttonValue)
+        calculatorScreen.innerText = "ERROR"
     }
 }
 
-let storedNum = 0
-let mathOperator = ''
+function numberEntry(buttonElement) {
+    const newNumber = buttonElement.innerText
+    numberArray.push(parseInt(newNumber))
+    latestNumber = parseInt(numberArray.join(""))
+    calculatorScreen.innerHTML = latestNumber
+}
 
-function appendNumbers(number){
-    const screen = document.getElementById('screen')
-    let calcScreen = document.getElementById('screen').innerText.split("")
-    if (calcScreen.length === 0) {
-        screen.innerText = number
+function operatorFn(buttonElement) {
+    const sign = buttonElement.innerText
+    if (sign === "C"){
+        calculatorScreen.innerText = ""
+        numberArray = []
+        theEquation = []
+    } else if (sign === "="){
+        sumButton()
     } else {
-        numberJoin(number, screen, calcScreen)
+        theEquation.push(parseInt(latestNumber), sign)
+        numberArray = []
+        latestNumber = 0
     }
 }
 
-function numberJoin(number, screen, calcScreen){
-    calcScreen.push(number)
+function sumButton() {
+    theEquation.push(latestNumber)
+    let answer = 0
+    for (let i = 0; i < theEquation.length - 1; i+= 2) {
+        const a = theEquation[i]
+        const operator = theEquation[i+1]
+        const b = theEquation[i+2]
 
-    let [a, ...rest] = calcScreen
-    let newScreen = [parseInt(a), rest]
+        answer = operationFunctions[operator](a, b)
 
-    if (!newScreen[0]){
-        mathHappens(number, screen, a)
-    } else {
-        let display = newScreen.flat().join('')
-        screen.innerText = display
+        theEquation.splice(i+2, 1, answer)
+
     }
 
+    latestNumber = answer
+    numberArray = []
+    theEquation = []
+    calculatorScreen.innerHTML = answer
 }
 
-function operand(e, screen, buttonValue){
-    storedNum = parseInt(screen.innerText)
-    screen.innerText = buttonValue
-    mathOperator = buttonValue
+
+const operationFunctions = {
+        "+": function(x, y) {return accumulator = x + y},
+        "-": function(x, y) {return accumulator = x - y},
+        "÷": function(x, y) {return accumulator = x / y},
+        "x": function(x, y) {return accumulator = x * y},
 }
 
 
-function mathHappens (number, screen, a){
-        const display = doMath[a](storedNum, number)
-        screen.innerText = display
-        storedNum = display
-}
+document.addEventListener('keydown', numberKey)
 
-const doMath = {
-    '+': function(x, y) {return x + y},
-    '-': function(x, y) {return x - y},
-    'x': function(x, y) {return x * y},
-    '÷': function(x, y) {return x / y}
+function numberKey(e) {
+    const newNumber = parseInt(e.key)
+    if (newNumber){
+        numberArray.push(parseInt(newNumber))
+        latestNumber = parseInt(numberArray.join(""))
+        calculatorScreen.innerHTML = latestNumber
     }
+}
